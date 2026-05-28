@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/lucas/Sistema-base-para-jogo-de-Cartas/build",
+  "command": "/usr/bin/c++  -I/home/lucas/Sistema-base-para-jogo-de-Cartas/src -Wall -Wextra -fsanitize=address,undefined -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/Cartas.dir/src/main.cpp.o -c /home/lucas/Sistema-base-para-jogo-de-Cartas/src/main.cpp",
+  "file": "/home/lucas/Sistema-base-para-jogo-de-Cartas/src/main.cpp"
+}
+]
