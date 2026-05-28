@@ -1,16 +1,13 @@
 #include <string>
 #include <iostream>
-
 #include <memory>
 
 class Card {
-
 private:
     std::string name_;
     int mana_cost_;
 
 public:
-
     Card(std::string name, int mana_cost) : name_(name), mana_cost_(mana_cost) {
         std::cout << "Carta \"" << name_ << "\" criada de forma independente.\n";
     }
@@ -29,14 +26,11 @@ public:
 };
 
 class GameBoard {
-
 private:
-
     std::shared_ptr<Card> active_cards_[5];
     int card_count_;
 
 public:
-
     GameBoard() : card_count_(0) {
         for (int i = 0; i < 5; ++i) {
             active_cards_[i] = nullptr;
@@ -64,16 +58,12 @@ public:
 };
 
 class Player {
-
 private:
-
     std::string nickname_;
     int life_points_;
-    // Composição: O objeto dependente GameBoard é alocado dinamicamente via ponteiro primitivo
     std::unique_ptr<GameBoard> board_; 
 
 public:
-    
     Player(std::string nickname, int life_points) 
         : nickname_(nickname), life_points_(life_points) {
         board_ = std::make_unique<GameBoard>();
@@ -101,15 +91,52 @@ public:
     }
 };
 
+class Match {
+private:
+    std::string stadium_name_;
+    int turn_;
+
+public:
+    Match(std::string stadium_name) : stadium_name_(stadium_name), turn_(1) {
+        std::cout << "Partida iniciada na arena \"" << stadium_name_ << "\".\n";
+    }
+
+    ~Match() {
+        std::cout << "~Match(\"" << stadium_name_ << "\") encerrada.\n";
+    }
+
+    // Getters
+    std::string get_stadium_name() const { return stadium_name_; }
+    int get_turn() const { return turn_; }
+
+    void next_turn() {
+        turn_++;
+        std::cout << ">>> Avancando para o Turno " << turn_ << "! <<<\n";
+    }
+
+    void display_match_status(const Player& player) const {
+        std::cout << "[Arena: " << stadium_name_ << " | Turno: " << turn_ 
+                  << " | Turno de: " << player.get_nickname() << " (LP: " << player.get_life_points() << ")]\n";
+    }
+};
+
 
 int main() {
-  
+    std::cout << "Criando as Cartas:\n";
     std::shared_ptr<Card> carta1 = std::make_shared<Card>("Mago Negro", 7);
     std::shared_ptr<Card> carta2 = std::make_shared<Card>("Dragao Branco", 8);
     std::cout << "\n";
 
-    std::cout << "[2] Criando o dono da Composicao (Player):\n";
+    std::cout << "Criando Player:\n";
     std::unique_ptr<Player> jogador = std::make_unique<Player>("Yugi", 4000);
+    std::cout << "\n";
+
+    std::cout << "Criando Match:\n";
+    Match partida("Arena dos Duelistas");
+    std::cout << "\n";
+
+    // Exibindo o status inicial usando a nova classe
+    partida.display_match_status(*jogador);
     std::cout << "\n";
 
     carta1->display_info();
@@ -120,18 +147,23 @@ int main() {
     jogador->receive_damage(1500);
     std::cout << "\n";
 
+    // Atualizando o turno da partida
+    partida.next_turn();
+    partida.display_match_status(*jogador);
+    std::cout << "\n";
+
+    std::cout << "Destruindo o Player (e consequentemente o GameBoard por Composicao):\n";
     jogador.reset();
     std::cout << "\n";
 
-    std::cout << "[5] Verificando que as cartas continuam intactas na memoria:\n";
+    std::cout << "Verificando que as cartas continuam intactas na memoria:\n";
     carta1->display_info();
     std::cout << "\n";
 
-    std::cout << "[6] Limpeza manual final das cartas criadas no main:\n";
+    std::cout << "Limpeza manual final das cartas criadas no main:\n";
     carta1.reset();
     carta2.reset();
 
-    std::cout << "\n--- FIM ---\n";
   
     return 0;
 }
