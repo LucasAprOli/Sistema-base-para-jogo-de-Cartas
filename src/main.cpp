@@ -1,6 +1,8 @@
 #include <string>
 #include <iostream>
 
+#include <memory>
+
 class Card {
 
 private:
@@ -30,7 +32,7 @@ class GameBoard {
 
 private:
 
-    Card* active_cards_[5];
+    std::shared_ptr<Card> active_cards_[5];
     int card_count_;
 
 public:
@@ -49,7 +51,7 @@ public:
     // Getter
     int get_card_count() const { return card_count_; }
 
-    bool play_card(Card* card) {
+    bool play_card(const std::shared_ptr<Card>& card) {
         if (card_count_ >= 5) {
             std::cout << "Tabuleiro cheio! Nao foi possivel jogar " << card->get_name() << ".\n";
             return false;
@@ -68,25 +70,24 @@ private:
     std::string nickname_;
     int life_points_;
     // Composição: O objeto dependente GameBoard é alocado dinamicamente via ponteiro primitivo
-    GameBoard* board_; 
+    std::unique_ptr<GameBoard> board_; 
 
 public:
     
     Player(std::string nickname, int life_points) 
         : nickname_(nickname), life_points_(life_points) {
-        board_ = new GameBoard(); 
+        board_ = std::make_unique<GameBoard>();
         std::cout << "Jogador \"" << nickname_ << "\" criado.\n";
     }
 
     ~Player() {
-        delete board_; // Deleta o GameBoard dependente
         std::cout << "~Player(\"" << nickname_ << "\") destruido.\n";
     }
 
     // Getters
     std::string get_nickname() const { return nickname_; }
     int get_life_points() const { return life_points_; }
-    GameBoard* get_board() const { return board_; }
+    GameBoard* get_board() const { return board_.get(); }
 
     void receive_damage(int amount) {
         life_points_ -= amount;
@@ -103,12 +104,12 @@ public:
 
 int main() {
   
-    Card* carta1 = new Card("Mago Negro", 7);
-    Card* carta2 = new Card("Dragao Branco", 8);
+    std::shared_ptr<Card> carta1 = std::make_shared<Card>("Mago Negro", 7);
+    std::shared_ptr<Card> carta2 = std::make_shared<Card>("Dragao Branco", 8);
     std::cout << "\n";
 
     std::cout << "[2] Criando o dono da Composicao (Player):\n";
-    Player* jogador = new Player("Yugi", 4000);
+    std::unique_ptr<Player> jogador = std::make_unique<Player>("Yugi", 4000);
     std::cout << "\n";
 
     carta1->display_info();
@@ -119,7 +120,7 @@ int main() {
     jogador->receive_damage(1500);
     std::cout << "\n";
 
-    delete jogador; 
+    jogador.reset();
     std::cout << "\n";
 
     std::cout << "[5] Verificando que as cartas continuam intactas na memoria:\n";
@@ -127,8 +128,8 @@ int main() {
     std::cout << "\n";
 
     std::cout << "[6] Limpeza manual final das cartas criadas no main:\n";
-    delete carta1;
-    delete carta2;
+    carta1.reset();
+    carta2.reset();
 
     std::cout << "\n--- FIM ---\n";
   

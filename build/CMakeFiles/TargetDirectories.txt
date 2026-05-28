@@ -1,3 +1,0 @@
-/home/lucas/Sistema-base-para-jogo-de-Cartas/build/CMakeFiles/Cartas.dir
-/home/lucas/Sistema-base-para-jogo-de-Cartas/build/CMakeFiles/edit_cache.dir
-/home/lucas/Sistema-base-para-jogo-de-Cartas/build/CMakeFiles/rebuild_cache.dir
