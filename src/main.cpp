@@ -1,29 +1,9 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include <vector>
 
-class Card {
-private:
-    std::string name_;
-    int mana_cost_;
-
-public:
-    Card(std::string name, int mana_cost) : name_(name), mana_cost_(mana_cost) {
-        std::cout << "Carta \"" << name_ << "\" criada de forma independente.\n";
-    }
-
-    ~Card() {
-        std::cout << "~Card(\"" << name_ << "\") destruida da memoria externa.\n";
-    }
-
-    // Getters
-    std::string get_name() const { return name_; }
-    int get_mana_cost() const { return mana_cost_; }
-
-    void display_info() const {
-        std::cout << "[Carta: " << name_ << " | Custo de Mana: " << mana_cost_ << "]\n";
-    }
-};
+#include "cartas.hpp"
 
 class GameBoard {
 private:
@@ -42,7 +22,6 @@ public:
         std::cout << "~GameBoard destruido (As cartas no campo nao foram deletadas por ser uma agregacao).\n";
     }
 
-    // Getter
     int get_card_count() const { return card_count_; }
 
     bool play_card(const std::shared_ptr<Card>& card) {
@@ -61,10 +40,10 @@ class Player {
 private:
     std::string nickname_;
     int life_points_;
-    std::unique_ptr<GameBoard> board_; 
+    std::unique_ptr<GameBoard> board_;
 
 public:
-    Player(std::string nickname, int life_points) 
+    Player(std::string nickname, int life_points)
         : nickname_(nickname), life_points_(life_points) {
         board_ = std::make_unique<GameBoard>();
         std::cout << "Jogador \"" << nickname_ << "\" criado.\n";
@@ -74,7 +53,6 @@ public:
         std::cout << "~Player(\"" << nickname_ << "\") destruido.\n";
     }
 
-    // Getters
     std::string get_nickname() const { return nickname_; }
     int get_life_points() const { return life_points_; }
     GameBoard* get_board() const { return board_.get(); }
@@ -105,7 +83,6 @@ public:
         std::cout << "~Match(\"" << stadium_name_ << "\") encerrada.\n";
     }
 
-    // Getters
     std::string get_stadium_name() const { return stadium_name_; }
     int get_turn() const { return turn_; }
 
@@ -115,7 +92,7 @@ public:
     }
 
     void display_match_status(const Player& player) const {
-        std::cout << "[Arena: " << stadium_name_ << " | Turno: " << turn_ 
+        std::cout << "[Arena: " << stadium_name_ << " | Turno: " << turn_
                   << " | Turno de: " << player.get_nickname() << " (LP: " << player.get_life_points() << ")]\n";
     }
 };
@@ -123,8 +100,8 @@ public:
 
 int main() {
     std::cout << "Criando as Cartas:\n";
-    std::shared_ptr<Card> carta1 = std::make_shared<Card>("Mago Negro", 7);
-    std::shared_ptr<Card> carta2 = std::make_shared<Card>("Dragao Branco", 8);
+    std::shared_ptr<Card> carta1 = std::make_shared<CartaMonstro>("Mago Negro", 7, 2500, 2100);
+    std::shared_ptr<Card> carta2 = std::make_shared<CartaMonstro>("Dragao Branco", 8, 3000, 2500);
     std::cout << "\n";
 
     std::cout << "Criando Player:\n";
@@ -135,21 +112,62 @@ int main() {
     Match partida("Arena dos Duelistas");
     std::cout << "\n";
 
-    // Exibindo o status inicial usando a nova classe
     partida.display_match_status(*jogador);
     std::cout << "\n";
 
     carta1->display_info();
-    
+
     jogador->get_board()->play_card(carta1);
     jogador->get_board()->play_card(carta2);
-    
+
     jogador->receive_damage(1500);
     std::cout << "\n";
 
-    // Atualizando o turno da partida
     partida.next_turn();
     partida.display_match_status(*jogador);
+    std::cout << "\n";
+
+    // ========================================================
+    // Q1 (C) — Destrutor virtual: derivada -> base, via ponteiro base.
+    // ========================================================
+    std::cout << "=== Q1 (C): destrutor virtual via ponteiro para a base ===\n";
+    Card* carta_bruta = new CartaMonstro("Exodia", 10, 4000, 4000);
+    delete carta_bruta;
+    // Esperado: "~CartaMonstro" impresso ANTES de "~Card"
+    std::cout << "\n";
+
+    // ========================================================
+    // Q2 — Polimorfismo dinâmico com vector<unique_ptr<Card>>.
+    // ========================================================
+    std::cout << "=== Q2: polimorfismo dinamico com vector<unique_ptr<Card>> ===\n";
+    std::vector<std::unique_ptr<Card>> baralho;
+    baralho.push_back(std::make_unique<CartaMonstro>("Guerreiro Lendario", 5, 2200, 1800));
+    baralho.push_back(std::make_unique<CartaMagia>("Bola de Fogo", 4, "Causa 500 de dano direto", 500));
+    baralho.push_back(std::make_unique<CartaArmadilha>("Espelho de Forca", 3, 300));
+
+    std::cout << "\n-- Despacho polimorfico (display_info / calcular_poder) --\n";
+    for (const auto& carta : baralho) {
+        carta->display_info();
+        std::cout << "  Poder calculado: " << carta->calcular_poder() << "\n";
+    }
+
+    std::cout << "\n-- Q2 (D): carta com maior poder, via funcao livre --\n";
+    const Card* maior = carta_maior_poder(baralho);
+    if (maior != nullptr) {
+        std::cout << "Maior poder: " << maior->get_name() << " (" << maior->calcular_poder() << ")\n";
+    }
+    std::cout << "\n";
+
+    // ========================================================
+    // Q3 (D) — Uso da interface pura Ativavel por referência.
+    // ========================================================
+    std::cout << "=== Q3 (D): uso da interface pura Ativavel ===\n";
+    CartaMagia trovao("Trovao Divino", 6, "Causa 800 de dano em area", 800);
+    usar_ativavel(trovao); // a funcao so conhece Ativavel&, nao CartaMagia
+    std::cout << "\n";
+
+    std::cout << "=== Q2 (C): destruicao do vetor de cartas (derivada antes da base) ===\n";
+    baralho.clear();
     std::cout << "\n";
 
     std::cout << "Destruindo o Player (e consequentemente o GameBoard por Composicao):\n";
@@ -164,6 +182,5 @@ int main() {
     carta1.reset();
     carta2.reset();
 
-  
     return 0;
 }

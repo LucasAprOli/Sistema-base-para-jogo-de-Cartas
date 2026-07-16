@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Define os arquivos de origem 
+# Define os arquivos de origem
 set(SOURCES
     src/main.cpp
 )
@@ -30,3 +30,22 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR NOT CMAKE_BUILD_TYPE)
     target_compile_options(Cartas PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
     target_link_options(Cartas PRIVATE -fsanitize=address,undefined)
 endif()
+
+# ============================================================
+# Q4 (extra) — Catch2 via FetchContent
+# ============================================================
+include(FetchContent)
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.5.2
+)
+FetchContent_MakeAvailable(Catch2)
+
+add_executable(testes tests/test_tp2.cpp)
+target_include_directories(testes PRIVATE src)
+target_link_libraries(testes PRIVATE Catch2::Catch2WithMain)
+
+include(CTest)
+include(Catch)
+catch_discover_tests(testes)
