@@ -6,10 +6,24 @@ project(Cartas CXX)
 # Exporte compile_commands.json automaticamente
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Configura o padrão C++17 como obrigatório
-set(CMAKE_CXX_STANDARD 17)
+# Q1 usa concepts e ranges (C++20) — padrao obrigatorio a partir do TP3
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Necessario para std::thread / std::async (Q3-C/D)
+find_package(Threads REQUIRED)
+
+# ============================================================
+# Q4 (A) — nlohmann/json via FetchContent
+# ============================================================
+include(FetchContent)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3
+)
+FetchContent_MakeAvailable(json)
 
 # Define os arquivos de origem
 set(SOURCES
@@ -22,6 +36,8 @@ add_executable(Cartas ${SOURCES})
 # Inclui o diretório de headers (ajuste para src/ ou include/ conforme seu uso)
 target_include_directories(Cartas PRIVATE src)
 
+target_link_libraries(Cartas PRIVATE nlohmann_json::nlohmann_json Threads::Threads)
+
 # Aplica as flags de aviso (-Wall -Wextra) em todas as configurações
 target_compile_options(Cartas PRIVATE -Wall -Wextra)
 
@@ -32,19 +48,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR NOT CMAKE_BUILD_TYPE)
 endif()
 
 # ============================================================
-# Q4 (extra) — Catch2 via FetchContent
+# Q5 (extra) — Catch2 v3 via FetchContent
 # ============================================================
-include(FetchContent)
 FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.5.2
+    GIT_TAG        v3.5.2
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(testes tests/test_tp2.cpp)
+add_executable(testes tests/test_tp3.cpp)
 target_include_directories(testes PRIVATE src)
-target_link_libraries(testes PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(testes PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json Threads::Threads)
 
 include(CTest)
 include(Catch)
